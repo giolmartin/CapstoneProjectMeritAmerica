@@ -43,10 +43,18 @@ public class AccountHolder {
 	@NotBlank(message = "SSN can not be blank")
 	String SSN;
 	
+	@OneToOne(cascade = CascadeType.ALL, mappedBy = "accountHolder", fetch = FetchType.LAZY)
+	private RolloverIRA rollOverIRA;
+	
+	@OneToOne(cascade = CascadeType.ALL, mappedBy = "accountHolder", fetch = FetchType.LAZY)
+	private RothIRA rothIRA;
+	
+	@OneToOne(cascade = CascadeType.ALL, mappedBy = "accountHolder", fetch = FetchType.LAZY)
+	private IRA ira;
+	
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "accountHolder", fetch = FetchType.LAZY)
 	private List<DBAChecking> dbaCheckings;
 
-		// one account holder can only have one checking
 	@OneToOne(cascade = CascadeType.ALL, mappedBy = "accountHolder", fetch = FetchType.LAZY)
 	private CheckingAccount checkingAccounts;
 
@@ -80,7 +88,7 @@ public class AccountHolder {
 		return user;
 	}
 
-	public void setUser(User user) {
+	public void setUser(User user) {	
 		this.user = user;
 	}
 
@@ -88,19 +96,45 @@ public class AccountHolder {
 	public CheckingAccount getCheckingAccounts() {
 		return checkingAccounts;
 	}
+
+	public RolloverIRA getRollOverIRA() {
+		return rollOverIRA;
+	}
+
+	public RothIRA getRothIRA() {
+		return rothIRA;
+	}
+
+	public void setRollOverIRA(RolloverIRA rollOverIRA) {
+		this.rollOverIRA = rollOverIRA;
+	}
+
+	public IRA getIra() {
+		return ira;
+	}
+
+	public List<DBAChecking> getDbaCheckings() {
+		return dbaCheckings;
+	}
+
+	public void setIra(IRA ira) {
+		this.ira = ira;
+	}
+
+	public void setDbaCheckings(List<DBAChecking> dbaCheckings) {
+		this.dbaCheckings = dbaCheckings;
+	}
+
+	public void setRothIRA(RothIRA rothIRA) {
+		this.rothIRA = rothIRA;
+	}
+
+
+
 	public void setCheckingAccounts(CheckingAccount checkingAccounts) {
 		this.checkingAccounts = checkingAccounts;
 	}
-	
-	@JsonManagedReference
-	public List<DBAChecking> getDBAAccounts(){
-		return dbaCheckings;
-	}
-	@JsonManagedReference
-	public void setdbaChecking(List<DBAChecking> dbaChecking) {
-		this.dbaCheckings = new ArrayList<DBAChecking>(dbaChecking);	
-		}
-	
+
 	@JsonManagedReference
 	public SavingsAccount getSavingsAccounts() {
 		return savingsAccounts;
@@ -154,22 +188,23 @@ public class AccountHolder {
 	public double getCheckingBalance() {
 		double totalBalance = 0;
 		if (checkingAccounts != null) {
-			
+
 				totalBalance = totalBalance + checkingAccounts.getBalance();
-		}
+
 			return totalBalance;
-		
+		}
+		return 0;
 	}
-	
+
 	public double getSavingsBalance() {
 		double totalBalance = 0;
 		if (savingsAccounts != null) {
+			
 				totalBalance = totalBalance + savingsAccounts.getBalance();
+			
 		}
-	
 		return totalBalance;
 	}
-
 	public int getNumberOfCDAccounts() {
 		if (cDAccounts != null) {
 			return cDAccounts.size();
@@ -188,6 +223,4 @@ public class AccountHolder {
 	public double getCombinedBalance() {
 		return getCheckingBalance() + getSavingsBalance() + getCdbalance();
 	}
-
-
 }

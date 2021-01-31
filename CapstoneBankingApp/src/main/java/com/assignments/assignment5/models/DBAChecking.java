@@ -1,5 +1,4 @@
 package com.assignments.assignment5.models;
-
 import java.util.*;
 
 import javax.persistence.CascadeType;
@@ -23,19 +22,15 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
-@Entity
-@Table(name = "DBAChecking")
+
+@Entity(name = "DBACheckings")
+@Table(name = "DBACheckings")
 public class DBAChecking extends BankAccount{
-	
+
 	@DecimalMin(value = "0.0", inclusive = false, message = "interest rate must be greater than zero")
 	@DecimalMax(value = "1", inclusive = false, message = "interest rate must be less than one")
 	double interestRate = 0.0001;
-	
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "dba_checking")
-	Integer id;
-	
+
 	public DBAChecking() {
 		super();
 	}
@@ -48,4 +43,5 @@ public class DBAChecking extends BankAccount{
 		this.interestRate = interestRate;
 	}
 
+	
 }
