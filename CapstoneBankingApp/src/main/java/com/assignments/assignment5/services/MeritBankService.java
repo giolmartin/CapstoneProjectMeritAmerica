@@ -1,8 +1,10 @@
 package com.assignments.assignment5.services;
 
+import java.io.Console;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,19 +28,20 @@ import Exceptions.AccountNotFoundException;
 import Exceptions.ExceedsCombinedBalanceLimitException;
 import Exceptions.NegativeBalanceException;
 import Exceptions.TooManyAccountsException;
+import Exceptions.TransactionFailureException;
 
 @Service
 public class MeritBankService {
 	@Autowired
-	private RolloverIRARepository rolloverIRARepository;
+	private RolloverIRARepository RollIRA;
 	@Autowired
-	private RothIRARepository rothIRARepository;
+	private RothIRARepository RothIRARepo;
 	@Autowired
-	private IRARepository iraRepository;
+	private IRARepository irarepo;
 	@Autowired
-	private DBACheckingRepository dbaCheckingRepository;
+	private DBACheckingRepository DBACheckingRepo;
 	@Autowired
-	private AccountHoldersContactDetailsRepository ahContactDetailsRepository;
+	private AccountHoldersContactDetailsRepository ahContactDetailsrepository;
 	@Autowired
 	private AccountHolderRepository accountHolderRepository;
 	@Autowired
@@ -54,7 +57,7 @@ public class MeritBankService {
 	@Autowired
 	private RoleRepository roleRepository;
 	@Autowired
-	private DepositTransactionRepository depositTransactionRepository;
+	private DepositTransactionRepository depositRepository;
 	@Autowired
 	private MyUserDetailsService userDetailsService;
 	@Autowired
@@ -126,7 +129,7 @@ public class MeritBankService {
 //		return ahContactDetails;
 //	}
 	public List<AccountHoldersContactDetails> getAccountHoldersContactDetails() {
-		return ahContactDetailsRepository.findAll();
+		return ahContactDetailsrepository.findAll();
 	}
 
 	public CheckingAccount postCheckingAccount(CheckingAccount checkingAccount, Integer id)
@@ -145,7 +148,7 @@ public class MeritBankService {
 		AccountHolder ah = getById(id);
 		ah.setIra(ira);
 		ira.setAccountHolder(ah);
-		iraRepository.save(ira);
+		irarepo.save(ira);
 		return ira;
 	}
 
@@ -153,7 +156,7 @@ public class MeritBankService {
 		AccountHolder ah = getById(id);
 		ah.setRothIRA(ira);
 		ira.setAccountHolder(ah);
-		rothIRARepository.save(ira);
+		RothIRARepo.save(ira);
 		return ira;
 	}
 
@@ -161,7 +164,7 @@ public class MeritBankService {
 		AccountHolder ah = getById(id);
 		ah.setRollOverIRA(ira);
 		ira.setAccountHolder(ah);
-		rolloverIRARepository.save(ira);
+		RollIRA.save(ira);
 		return ira;
 	}
 
@@ -176,7 +179,7 @@ public class MeritBankService {
 		}
 		ah.setDbaCheckings((Arrays.asList(dbacheckingAccount)));
 		dbacheckingAccount.setAccountHolder(ah);
-		dbaCheckingRepository.save(dbacheckingAccount);
+		DBACheckingRepo.save(dbacheckingAccount);
 		return dbacheckingAccount;
 	}
 
@@ -236,7 +239,7 @@ public class MeritBankService {
 	public AccountHolder getMyAccountInfo(HttpServletRequest request) {
 //		final String authorizationHeader = request.getHeader("Authorization");
 //
-		String username = request.getUserPrincipal().getName();//userDetails.;
+		String username = request.getUserPrincipal().getName();// userDetails.;
 //		String jwt = null;
 		AccountHolder ah = null;
 //
@@ -282,7 +285,7 @@ public class MeritBankService {
 		}
 		ah.setDbaCheckings((Arrays.asList(dbacheckingAccount)));
 		dbacheckingAccount.setAccountHolder(ah);
-		dbaCheckingRepository.save(dbacheckingAccount);
+		DBACheckingRepo.save(dbacheckingAccount);
 		return dbacheckingAccount;
 	}
 
@@ -339,7 +342,7 @@ public class MeritBankService {
 		AccountHolder ah = getMyAccountInfo(request);
 		ah.setIra(ira);
 		ira.setAccountHolder(ah);
-		iraRepository.save(ira);
+		irarepo.save(ira);
 		return ira;
 	}
 
@@ -352,7 +355,7 @@ public class MeritBankService {
 		AccountHolder ah = getMyAccountInfo(request);
 		ah.setRothIRA(RothIRA);
 		RothIRA.setAccountHolder(ah);
-		rothIRARepository.save(RothIRA);
+		RothIRARepo.save(RothIRA);
 		return RothIRA;
 	}
 
@@ -365,7 +368,7 @@ public class MeritBankService {
 		AccountHolder ah = getMyAccountInfo(request);
 		ah.setRollOverIRA(RolloverIRA);
 		RolloverIRA.setAccountHolder(ah);
-		rolloverIRARepository.save(RolloverIRA);
+		RollIRA.save(RolloverIRA);
 		return RolloverIRA;
 	}
 
@@ -374,27 +377,67 @@ public class MeritBankService {
 		return ah.getRollOverIRA();
 	}
 
-	public DBAChecking postMyDeposit(HttpServletRequest request
-			,DepositTransaction deposit, String type)
+	public BankAccount postMyDeposit(HttpServletRequest request, DepositTransaction deposit, String type)
 			throws ExceedsCombinedBalanceLimitException, NegativeBalanceException {
 		switch (type) {
 		case "DBACheckingAccount":
-			//deposit.setBankAccount( request.getParameter("bankAccount"));
-			deposit.process();
+			// deposit.setBankAccount( request.getParameter("bankAccount"));
+			DBAChecking existingDBA;
+			Optional<DBAChecking> dba = DBACheckingRepo.findById(deposit.getDbaChecking().getId());
+			if (dba != null) {
+				existingDBA = dba.get();
+				deposit.setDbaChecking(existingDBA);
+				deposit.process();
+				DBACheckingRepo.save(existingDBA);
+				
+				depositRepository.save(deposit);
+				return existingDBA;
+			}
+			else {
+				new TransactionFailureException();
+			}
+			// deposit.setBankAccount(getMyAccountInfo(request).getDbaCheckings().get(0));
 			
-			//Object test3 = request.getUserPrincipal().getName();
+			// Object test3 = request.getUserPrincipal().getName();
 //			ah.setcDAccounts((Arrays.asList(cDAccount)));
 //			cDAccount.setAccountHolder(ah);
 //			cdAccountRepository.save(cDAccount);
+			
 			break;
-		case "two":
-			System.out.println("two");
-			break;
+		case "CheckingAccount":
+			CheckingAccount existingChecking;
+			Optional<CheckingAccount> check = checkingAccountRepository.findById(deposit.getChecking().getId());
+			if (check.isPresent()) {
+				existingChecking = check.get();
+				deposit.setChecking(existingChecking);
+				deposit.process();
+				checkingAccountRepository.save(existingChecking);
+				
+				depositRepository.save(deposit);
+				return existingChecking;
+				
+			} else {
+				new TransactionFailureException();
+			}
+			
 		case "three":
 			System.out.println("three");
 			break;
 		default:
 			System.out.println("no match");
+			break;
+		}
+		return null;
+	}
+	public List<Transaction> getMyDeposit(String location) {
+		switch (location) {
+		case "DBACheckingAccount":
+			return depositRepository.findByLocation("dbaChecking");
+			//break;
+		case "CheckingAccount":
+			return depositRepository.findByLocation("checkingAccount");
+			//break;
+		default:
 			break;
 		}
 		return null;

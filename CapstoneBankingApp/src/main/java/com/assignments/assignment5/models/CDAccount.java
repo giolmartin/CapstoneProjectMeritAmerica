@@ -14,6 +14,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.DecimalMax;
 import javax.validation.constraints.DecimalMin;
 
+import com.assignments.assignment5.models.BankAccount;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity(name = "CDAccount")
@@ -44,7 +45,7 @@ public class CDAccount extends BankAccount {
 	public CDOffering getcDOffering() {
 		return cDOffering;
 	}
-
+	@JsonBackReference(value="cdAccount")
 	public void setcDOffering(CDOffering cDOffering) {
 		this.cDOffering = cDOffering;
 	}
